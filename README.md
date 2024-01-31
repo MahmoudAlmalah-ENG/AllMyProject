@@ -24,6 +24,7 @@
 - [Build Timeline](#build-timeline)
 - [Getting Started](#getting-started)
 - [Contact](#contact)
+- [Example Code](#example-code)
 - [Database Schema](#database-schema)
 - [File Structure](#file-structure)
 
@@ -128,6 +129,210 @@ prioritization or posting a regular question.
 For inquiries or support, please contact Mahmoud Almalah at +201026475912.
 
 Thank you for choosing AskMe! Happy coding!
+
+## Example Code
+
+### API Routes
+
+```php
+<?php
+Route::group([
+    'controller' => 'EndpointController',
+    'prefix' => 'endpoints',
+    'as' => 'endpoints.',
+    'namespace' => 'Endpoints',
+], function () {
+    Route::get('splash', 'splash')->name('splash');
+    Route::get('country', 'country')->name('country');
+    Route::get('city', 'city')->name('city');
+    Route::get('city_show/{country}', 'cityShow')->name('city_show');
+    Route::get('category', 'category')->name('category');
+    Route::get('guidelines', 'guidelines')->name('guidelines');
+    Route::get('nationality', 'nationality')->name('nationality');
+    Route::get('year', 'year')->name('year');
+    Route::get('privacy', 'privacy')->name('privacy');
+    Route::get('setting', 'settings')->name('settings');
+});
+```
+
+### WEB Routes
+
+```php
+<?php
+Route::group([
+    'prefix' => 'guidelines',
+    'as' => 'guidelines.',
+    'middleware' => ['can:guidelines'],
+], function () {
+    Route::view('/', 'admin.guidelines.index')->name('index');
+});
+```
+
+### API Controller
+
+```php
+<?php
+ public function register(RegisterRequest $registerRequest)
+    {
+        try {
+            // Create a new user with the validated data from the request
+            $user = User::create($registerRequest->validated());
+            // Load the 'nationality', 'city', and 'country' relationships for the user
+            $user->load(['nationality', 'city', 'country']);
+
+            // Assign the 'user' role to the user
+            $user->assignRole(roles: 'user');
+
+            // Return a success response with a message, the user data, and a 201 status code
+            return $this->success(__('auth.register'), new UserResource($user), 201);
+        } catch (\Exception $e) {
+            // Log the error and return an error response with a 500 status code
+            $this->logError(file: __FILE__, message: $e->getMessage(), function: __FUNCTION__, line: $e->getLine(), trace: $e->getTraceAsString());
+
+            return $this->error(message: __('http-statuses.500'));
+        }
+    }
+?>
+```
+
+### Query Builder Example
+
+```php
+<?php
+    public static function getPaymentQuestions(int $city_id = null, int $cat_id = null, int $perPage = null): LengthAwarePaginator
+    {
+        // Start a new query
+        return self::query()
+            // Apply category filter if a category ID is provided
+            ->when($cat_id, function ($query, $cat_id) {
+                return $query->where('category_id', $cat_id);
+            })
+            // Filter for questions that are of type 'PAID' and status 'ACTIVE'
+            ->where(['questions.type' => QuestionsState::PAID, 'questions.status' => QuestionsState::ACTIVE])
+            // Eager load related 'plan' and 'questionLocation' data from 'questionPlans'
+            ->with(['questionPlans.plan', 'questionPlans.questionLocation'])
+            // Join with 'question_plans' table to fetch related data
+            ->leftJoin('question_plans', function ($join) {
+                $join->on('question_plans.question_id', '=', 'questions.id')
+                    ->where('question_plans.status', PaymentState::SUCCESS)
+                    ->where('question_plans.expired_at', '>=', now());
+            })
+            // Join with 'plans' table to fetch related data
+            ->leftJoin('plans', 'plans.id', '=', 'question_plans.plan_id')
+            // Join with 'question_locations' table to fetch related data
+            ->leftJoin('question_locations', 'question_locations.question_id', '=', 'questions.id')
+            // Apply city filter if a city ID is provided
+            ->where(function ($query) use ($city_id) {
+                $query->where(function ($query) use ($city_id) {
+                    $query->where('plans.type', PlansStats::ThisCity)
+                        ->whereHas('questionLocations', function ($query) use ($city_id) {
+                            $query->where('city_id', $city_id);
+                        });
+                })
+                    ->orWhere(function ($query) use ($city_id) {
+                        $query->where('plans.type', PlansStats::AllCityInCountry)
+                            ->whereRelation('questionLocations', 'country_id', CountryCity::where('city_id', $city_id)->first()->country_id);
+                    })
+                    ->orWhere('plans.type', PlansStats::AllCountry);
+            })
+            // Order the results by the latest Modified At date
+            ->latest()
+            // Paginate the results
+            ->paginate($perPage ?? self::perPage);
+    }
+?>
+```
+
+### Model Example
+
+```php
+<?php
+final class User extends Authenticatable
+{
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes, UserHelper;
+
+    const TABLE = 'users';
+
+    protected $table = self::TABLE;
+
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        'name',
+        'phone',
+        'email',
+        'birthday',
+        'gender',
+        'status',
+        'nationality_id',
+        'city_id',
+        'country_id',
+        'last_login',
+        'password',
+        'fcm_token',
+    ];
+
+    protected $attributes = [
+        'status' => UserState::ACTIVE,
+    ];
+[AddCategoryForm.php](..%2F..%2Fproject%2Fasalny%2Fapp%2FLivewire%2FCategory%2FAddCategoryForm.php)
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'status' => 'integer',[AddQuestionsForm.php](..%2F..%2Fproject%2Fasalny%2Fapp%2FLivewire%2FQuestion%2FAddQuestionsForm.php)
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'created_at' => 'datetime',
+        'birthday' => 'string',
+    ];
+}
+?>
+```
+
+### Livewire Component Example
+
+```php
+<?php
+final class AddCategoryForm extends Livewire
+{
+ #[Rule('required|string|max:255|unique:categories,name')]
+    public $name;
+
+    const HIDE_ADD_MODAL = 'hideAddCategoryModal';
+
+    const REFRESH_TABLE = 'refreshTable';
+
+    public function hydrate(): void
+    {
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
+
+    public function store(): void
+    {
+        $this->validate();
+
+        try {
+            Category::create([
+                'name' => $this->name,
+            ]);
+
+            $this->dispatch(self::REFRESH_TABLE);
+            $this->dispatch(self::HIDE_ADD_MODAL);
+
+            $this->reset();
+
+            $this->alertByEvent('success', __('http-statuses.200'), __('admin.:name created_successfully', ['name' => __('admin.category')]));
+        } catch (\Exception $e) {
+            $this->alertByEvent('error', __('http-statuses.500'), $e->getMessage());
+        }
+    }
+}
+ ?>
+```
 
 ## Database Schema
 
