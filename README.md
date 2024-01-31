@@ -275,14 +275,14 @@ final class User extends Authenticatable
     protected $attributes = [
         'status' => UserState::ACTIVE,
     ];
-[AddCategoryForm.php](..%2F..%2Fproject%2Fasalny%2Fapp%2FLivewire%2FCategory%2FAddCategoryForm.php)
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
     protected $casts = [
-        'status' => 'integer',[AddQuestionsForm.php](..%2F..%2Fproject%2Fasalny%2Fapp%2FLivewire%2FQuestion%2FAddQuestionsForm.php)
+        'status' => 'integer',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'created_at' => 'datetime',
