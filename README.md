@@ -8,7 +8,7 @@
     <a href="https://play.google.com/store/apps/details?id=com.asos.asalny">
         <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Google Play" width="200" height="80">
     </a>
-    <a href="#">
+    <a href="https://apps.apple.com/us/app/%D8%A5%D8%B3%D8%A7%D9%84%D9%86%D9%8A-ask-me/id6475263354">
         <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" width="160" height="80">
     </a>
 </p>
