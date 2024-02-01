@@ -2,5 +2,5 @@
 
 ## Table of Contents
 
-- [Asalny](/Asalny/README.md)
-- [Mnhaj Academy](/Mnhaj/README.md)
+- [Asalny](Asalny/README.md)
+- [Mnhaj Academy](Mnhaj/README.md)
