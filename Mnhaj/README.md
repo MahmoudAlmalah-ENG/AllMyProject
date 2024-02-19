@@ -90,9 +90,7 @@ platform provides an interactive and user-friendly interface for both educators 
     cp .env.example .env
     ```
 
-4. **Generate Application Key
-   **[AllCourseController.php](..%2F..%2F..%2F..%2F..%2Fmedia%2Fmahmoud%2FNew%20Volume%2FProject%2FLaravel%2FVISOFT%2Flearn%2Fapp%2FHttp%2FControllers%2FCourses%2FAllCourseController.php)
-
+4. **Generate Application Key**
     ```bash
     php artisan key:generate
     ```
